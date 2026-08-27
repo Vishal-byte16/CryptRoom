@@ -102,14 +102,40 @@
   .dark .room-shell section { background: #17272a; }
   .dark .room-shell header, .dark .room-shell footer { border-color: #315154; background: rgba(23,39,42,.96); }
   .dark .room-shell header p, .dark .room-shell header h2, .dark .room-shell h1, .dark .room-shell h3 { color: #e8f4f2; }
-  .dark .room-shell .bg-white, .dark .room-shell .bg-white\/60, .dark .room-shell .bg-white\/70, .dark .room-shell .bg-white\/75, .dark .room-shell .bg-white\/80, .dark .room-shell .bg-\[\#fcfefd\] { background-color: #1c3033 !important; }
-  .dark .room-shell .border-\[\#d5e5e5\], .dark .room-shell .border-\[\#e0e9e8\], .dark .room-shell .border-\[\#e5eceb\], .dark .room-shell .border-\[\#d6e3e2\] { border-color: #315154 !important; }
-  .dark .room-shell .text-\[\#617780\], .dark .room-shell .text-\[\#70848a\], .dark .room-shell .text-\[\#71838a\], .dark .room-shell .text-\[\#506773\], .dark .room-shell .text-\[\#3f5964\] { color: #b8cecd !important; }
   .dark .landing-shell { background: radial-gradient(circle at 88% 8%, rgba(32, 90, 85, .55), transparent 24rem), radial-gradient(circle at 6% 82%, rgba(76, 59, 35, .38), transparent 20rem), #101b1e; color: #e8f4f2; }
-  .dark .landing-shell .landing-card, .dark .landing-shell .feature-card, .dark .landing-shell .bg-white, .dark .landing-shell .bg-white\/70 { border-color: #315154 !important; background-color: rgba(23,39,42,.92) !important; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
-  .dark .landing-shell h1, .dark .landing-shell h2, .dark .landing-shell h3, .dark .landing-shell .text-\[\#1e3039\], .dark .landing-shell .text-\[\#263944\] { color: #e8f4f2 !important; }
-  .dark .landing-shell .text-\[\#6d8087\], .dark .landing-shell .text-\[\#71838a\], .dark .landing-shell .text-\[\#74868d\] { color: #b8cecd !important; }
-  .dark .landing-shell .border-\[\#d5e5e5\], .dark .landing-shell .border-\[\#d6e3e2\] { border-color: #315154 !important; }
+  .dark .landing-shell .landing-card, .dark .landing-shell .feature-card { border-color: #315154 !important; background-color: rgba(23,39,42,.92) !important; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+
+  /* Backgrounds: near-white/tinted panel and pill backgrounds -> dark panel tones */
+  .dark .bg-white, .dark .bg-white\/60, .dark .bg-white\/70, .dark .bg-white\/75, .dark .bg-white\/80,
+  .dark .bg-\[\#fcfefd\], .dark .bg-\[\#f8fbfa\], .dark .bg-\[\#fbfcfa\], .dark .bg-\[\#f0f7f6\], .dark .bg-\[\#f2f9f7\],
+  .dark .bg-\[\#e5f2f0\], .dark .bg-\[\#e6f2f0\], .dark .bg-\[\#e7f4f1\], .dark .bg-\[\#e8f1f0\], .dark .bg-\[\#eef3f3\],
+  .dark .bg-\[\#eef8f5\], .dark .bg-\[\#e1e9e8\] { background-color: #1c3033 !important; }
+  /* Danger/warning backgrounds -> muted dark red panel */
+  .dark .bg-\[\#fff2ee\], .dark .bg-\[\#fff4f1\], .dark .bg-\[\#faeae6\] { background-color: #3a221c !important; }
+  /* Decorative blur accents: dim so they don't glow too bright on dark bg */
+  .dark .bg-\[\#d9efe9\], .dark .bg-\[\#f1dfbc\] { opacity: 0.25; }
+
+  /* Headings & primary text -> light near-white */
+  .dark h1, .dark h2, .dark h3,
+  .dark .text-\[\#1e3039\], .dark .text-\[\#20313c\], .dark .text-\[\#263943\], .dark .text-\[\#263944\], .dark .text-\[\#263945\],
+  .dark .text-\[\#263a45\], .dark .text-\[\#1c2938\], .dark .text-\[\#1f303c\], .dark .text-\[\#2a3e49\], .dark .text-\[\#3f5664\],
+  .dark .text-\[\#3f5964\], .dark .text-\[\#3f6570\], .dark .text-\[\#415867\], .dark .text-\[\#415d69\], .dark .text-\[\#526a73\],
+  .dark .text-\[\#5b6b7d\], .dark .text-\[\#627681\] { color: #e8f4f2 !important; }
+
+  /* Muted / secondary text -> soft teal-gray, kept legible on dark panels */
+  .dark .text-\[\#617780\], .dark .text-\[\#618088\], .dark .text-\[\#6d8087\], .dark .text-\[\#6f8790\], .dark .text-\[\#70818a\],
+  .dark .text-\[\#70828a\], .dark .text-\[\#70848a\], .dark .text-\[\#71838a\], .dark .text-\[\#506773\], .dark .text-\[\#87989d\],
+  .dark .text-\[\#91a0a3\], .dark .text-\[\#91a0a6\], .dark .text-\[\#97a6aa\], .dark .text-\[\#9caab0\], .dark .text-\[\#a0afb1\],
+  .dark .text-\[\#a1afb2\], .dark .text-\[\#a1b0b2\], .dark .text-\[\#cad5d7\], .dark .text-\[\#b8c5c8\] { color: #9fb8b6 !important; }
+
+  /* Danger text (errors, warnings) -> lighter red, readable on dark backgrounds */
+  .dark .text-\[\#a44936\], .dark .text-\[\#b15640\], .dark .text-\[\#934633\], .dark .text-\[\#9e3527\], .dark .text-\[\#b64b37\] { color: #f0a08c !important; }
+
+  /* Borders -> consistent dark divider color; danger borders get a muted red */
+  .dark .border-\[\#c9dedc\], .dark .border-\[\#d5e5e5\], .dark .border-\[\#d6e4e4\], .dark .border-\[\#d6e3e2\], .dark .border-\[\#d8e4e6\],
+  .dark .border-\[\#dae6e7\], .dark .border-\[\#dbe6e5\], .dark .border-\[\#e0e9e8\], .dark .border-\[\#e0eae9\], .dark .border-\[\#e5eceb\],
+  .dark .border-\[\#cfe0df\] { border-color: #315154 !important; }
+  .dark .border-\[\#de8a76\], .dark .border-\[\#f0d2ca\] { border-color: #6b3c30 !important; }
   @keyframes message-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes type-dot { 0%, 60%, 100% { transform: translateY(0); opacity: .45; } 30% { transform: translateY(-3px); opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .message-row, .typing-dots i { animation: none; } button { transition: none; } }
