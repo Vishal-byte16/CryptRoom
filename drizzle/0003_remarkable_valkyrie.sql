@@ -1,0 +1,1 @@
+ALTER TABLE `room_join_challenges` ADD CONSTRAINT `join_challenges_room_id_unique` UNIQUE(`roomId`);

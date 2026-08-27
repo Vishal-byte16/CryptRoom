@@ -1,0 +1,15 @@
+{
+  "name": "CryptRoom — Private, Ephemeral Encrypted Chat",
+  "short_name": "CryptRoom",
+  "description": "Chat privately without an account. Messages are encrypted in your browser and rooms automatically expire.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f8f7",
+  "theme_color": "#1b7a7a",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

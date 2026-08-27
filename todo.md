@@ -1,0 +1,77 @@
+# Project TODO
+
+- [x] Define an ephemeral two-participant room schema that persists only operational metadata and never chat content.
+- [x] Add secure guest-session tokens, non-enumerable room IDs, and server-side authorization for all room operations.
+- [x] Implement room creation with a cryptographically strong six-character Room ID and shareable access flow.
+- [x] Complete direct Room ID joining with a separate private-key entry while preserving full secure-link joining.
+- [x] Implement participant presence, leave-room behavior, room expiration, and a managed cleanup endpoint without in-process timers.
+- [x] Implement encrypted client-to-client message payloads with the browser Web Crypto API and an ephemeral relay that never persists message bodies.
+- [x] Build the polished responsive CryptRoom landing, join, room, loading, empty, offline, and error interfaces.
+- [x] Add privacy-forward messaging, room-management controls, typing status, connection states, and accessible interaction feedback.
+- [x] Add service-level database tests for create, join, capacity rejection, authorization, leave, and expiry cleanup behavior.
+- [x] Verify desktop and mobile presentation and inspect runtime logs.
+- [x] Prepare the managed room-cleanup endpoint and defer platform activation until the site is published, as required by the hosting environment.
+- [x] Create a final project checkpoint.
+- [x] Analyze the pasted-content requirements and implement the requested CryptRoom revisions.
+- [x] Audit the repository, dependencies, platform-specific surfaces, logs, runtime assets, and deployment configuration for privacy and standalone-operation concerns.
+- [x] Replace Room ID-only joining with server-side proof of room-secret possession that never stores the plaintext secret.
+- [x] Add replay-resistant encrypted message envelopes with authenticated room context, message identifiers, sequence numbers, and strict payload validation.
+- [x] Harden Socket.IO authorization, multi-tab participant presence, bounded rate limiting, proxy handling, security headers, error handling, and the health endpoint.
+- [x] Remove unnecessary application-level platform telemetry, analytics, debug assets, and unused integration code while preserving deployment compatibility.
+- [x] Add standalone environment, deployment, security, and threat-model documentation without making unsupported security claims.
+- [x] Improve independent CryptRoom metadata, favicon, security explanation, accessible controls, and privacy-safe URL/session behavior.
+- [x] Run dependency checks, type checking, lifecycle and authorization tests, production build, health smoke verification, and desktop/mobile visual checks.
+- [x] Add relay-adjacent automated tests for bounded rate enforcement, replay-envelope validation, malformed or oversized encrypted payload rejection, and unauthorized room admission.
+- [x] Exercise production-mode room admission and health verification, including room creation, join proof, capacity enforcement, and lifecycle cleanup through the verified service tests.
+- [x] Fix the unreachable room:error listener and make outgoing message sequence state resilient across active-session page refreshes.
+- [x] Bound live join challenges per room and document the single-process scope of in-memory relay replay and rate-limit state.
+- [x] Preserve strict production PORT binding, remove generated artifacts, update Vite to a patched compatible release, and rerun the dependency audit.
+- [x] Document a safe non-destructive legacy users-table migration posture for standalone deployments.
+- [x] Run and record the complete post-remediation check, test, production build, and audit cycle.
+- [x] Extract the additional pasted remediation requirements and implement all applicable CryptRoom fixes.
+- [x] Change relay abuse limits from socket-scoped to authenticated participant-scoped keys, remove fake disconnect limiter entries, and test shared budgets across tabs.
+- [x] Add client-side encrypted-envelope structural validation before decryption and test malformed, stale, oversized, and valid envelope behavior.
+- [x] Document monotonically increasing sequence semantics, process-local replay state after restart, and multi-tab/session behavior without weakening server validation.
+- [x] Verify bounded single-use join challenges, strict production port behavior, headers/CORS, safe logs, legacy-user-table non-destructive posture, and absence of application tracking surfaces.
+- [x] Run and record check, test, build, audit, and production/application verification; remediate resulting failures where applicable.
+- [x] Preserve the safe environment contract in ENVIRONMENT.md; the managed workspace blocks direct creation of `.env.example`, so README accurately directs users to create an uncommitted `.env` from the documented safe example.
+- [x] Extract the third pasted remediation requirements and implement all applicable targeted CryptRoom fixes.
+- [x] Add structured Socket.IO acknowledgements so rejected encrypted messages are never rendered as successfully sent.
+- [x] Refactor room error state to distinguish cryptographic failures, server rejections, connection failures, and expired-room conditions.
+- [x] Ensure explicit leave removes nonsecret participant sequence storage while temporary disconnects and refreshes retain it.
+- [x] Verify participant-level message and typing limits, replay semantics, challenge bounds, Socket.IO authorization, capacity, expiration, logs, headers, CORS, and privacy surfaces.
+- [x] Run current browser/application, production, test, typecheck, build, audit, outdated, and repository security verification and record limitations.
+- [x] Present structured server rejection categories distinctly in the room interface and expand relay-level test coverage for acknowledgements and participant-scoped controls.
+- [x] Document browser-driven room-flow verification as not run because this workspace lacks an interactive multi-browser automation surface; relay integration, unit, production health, and header checks were completed instead.
+- [x] Keep the `.env.example` artifact explicitly unfulfilled because the managed environment does not permit committed `.env*` file creation; ENVIRONMENT.md and README provide the safe setup contract.
+- [x] Complete the fourth remediation requirements, including documented dependency-audit totals and clearly marked browser E2E limitations.
+- [x] Make acknowledgement timeout and late/duplicate acknowledgement handling attempt-specific so older sends cannot affect newer drafts or send state.
+- [x] Make missing Socket.IO acknowledgement callbacks safe and serialize messages per authenticated participant with bounded cleanup.
+- [x] Correct multi-tab self-message classification without exposing a token, secret, key, or durable tracking identifier.
+- [x] Add regression coverage for concurrent same-participant ordering, missing callbacks, acknowledgement outcomes, and replay protection; late/duplicate acknowledgement behavior is guarded by attempt-state checks in the client and documented as not browser-automated.
+- [x] Complete the fourth-pass repository scan and dependency-audit review, alongside the completed install, test, build, smoke, and browser-E2E limitation documentation.
+- [x] Complete the fifth-pass evidence bundle: detailed remaining critical/high advisory analysis and explicit browser E2E limitation report.
+- [x] Make join-challenge replacement atomic with one active challenge per room using a database unique constraint and atomic upsert.
+- [x] Apply authenticated participant rate limits before database work for messages and typing while preserving expiration and authorization checks.
+- [x] Ensure participant queue failures return a single safe acknowledgement, maintain client-emission ordering, and stay bounded/cleaned.
+- [x] Add bounded handshake-abuse controls and strict production Socket.IO origin allowlisting through ALLOWED_HOSTS.
+- [x] Produce the detailed CryptRoom 5 production evidence for typing/presence/expiration coverage, remaining dependency risk, and the not-run real two-browser UI E2E limitation.
+- [x] Complete the CryptRoom 6 whole-codebase production hardening audit and implement every compatible remediation directly.
+- [x] Add high-concurrency atomic join-challenge regression coverage for creation, replacement, expiration, newest-challenge validity, single use, and replay rejection.
+- [x] Verify and harden multi-tab sequence ordering, acknowledgement outcomes, pre-work rate limits, bounded handshakes, and strict origin validation.
+- [x] Add lifecycle regression coverage for typing, hard expiration boundaries, cleanup, multi-socket presence, payload bounds, client delivery state, and privacy surfaces.
+- [x] Run the complete CryptRoom 6 install/check/test/build/audit/outdated/production verification and document residual risks honestly.
+- [x] Produce a prioritized, compatibility-aware plan to remediate the remaining critical and high audit findings.
+- [x] Implement deterministic bounded expiry and safe ACK rejection for buffered out-of-order relay messages.
+- [x] Verify and document proxy-safe Socket.IO handshake identity for the bounded handshake limiter.
+- [x] Add CryptRoom 7 regressions for missing-predecessor timeout/cleanup, reverse-arrival success, replay safety, and queue reuse.
+- [x] Run the CryptRoom 7 frozen install, check, test, build, audit, outdated, and browser-E2E availability verification; document actual residual risks.
+- [x] Add a privacy-preserving remote typing indicator with bounded automatic clearing.
+- [x] Add unfocused-tab message sound and browser notification controls without tracking or message persistence.
+- [x] Add a host-only early room-burn control with server-side authorization and room-expired handling.
+- [x] Add a secure-link QR sharing affordance without exposing the secret outside the existing share URL.
+- [x] Add an accessible persistent dark-mode theme control and responsive visual polish.
+- [x] Add regression tests and complete verification for the polish update.
+- [x] Immediately notify and disconnect active room sockets when the host burns a room, including stopping transient typing/presence behavior.
+- [x] Complete dark-mode coverage for remaining hardcoded Home and Room surfaces and verify responsive readability.
+- [x] Verify QR, theme persistence, host burn UX, and browser-only notification behavior or document the exact browser verification limitation.
