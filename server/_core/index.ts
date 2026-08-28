@@ -49,7 +49,7 @@ function applySecurityHeaders(app: express.Express) {
 function applyCors(app: express.Express) {
   app.use((req, res, next) => {
     const origin = req.headers.origin;
-    if (origin && allowedSocketOrigin(origin, undefined, undefined, req.headers.host)) {
+    if (origin && allowedSocketOrigin(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Vary", "Origin");
       res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");

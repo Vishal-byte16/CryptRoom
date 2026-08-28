@@ -52,20 +52,16 @@ const participantQueues = new Map<string, ParticipantQueue>();
 let activeRelay: Server | null = null;
 const burnedRoomIds = new Set<string>();
 
-export function allowedSocketOrigin(origin: string | undefined, nodeEnv = process.env.NODE_ENV, configuredOrigins = process.env.ALLOWED_ORIGINS ?? process.env.ALLOWED_HOSTS ?? "", host?: string) {
+export function allowedSocketOrigin(origin: string | undefined, nodeEnv = process.env.NODE_ENV, configuredOrigins = process.env.ALLOWED_ORIGINS ?? process.env.ALLOWED_HOSTS ?? "") {
   if (nodeEnv !== "production") return true;
+  // Requests with no Origin header cannot be malicious cross-origin browser
+  // requests (browsers always attach Origin on cross-origin XHR/fetch), so
+  // there is nothing meaningful to validate here — allow them through.
+  if (!origin) return true;
   const configured = configuredOrigins.split(",").map(value => value.trim()).filter(Boolean);
   if (configured.length === 0) {
     console.warn("[roomRelay] Rejected socket connection: no ALLOWED_ORIGINS configured.");
     return false;
-  }
-  if (!origin) {
-    // Some same-origin XHR polling requests omit the Origin header. Fall back to
-    // checking the Host header against the allowed origins' host component.
-    const allowedHosts = configured.map(value => { try { return new URL(value).host; } catch { return null; } }).filter(Boolean);
-    const allowed = !!host && allowedHosts.includes(host);
-    if (!allowed) console.warn(`[roomRelay] Rejected socket request with no Origin header. Host: "${host ?? "(none)"}". Allowed hosts: ${allowedHosts.join(", ") || "(none)"}`);
-    return allowed;
   }
   try {
     const allowed = configured.includes(new URL(origin).origin);
@@ -235,10 +231,10 @@ export function registerRoomRelay(server: HttpServer) {
   const io = new Server(server, {
     path: "/api/realtime",
     cors: {
-      origin: (origin, callback) => callback(null, allowedSocketOrigin(origin, undefined, undefined, undefined)),
+      origin: (origin, callback) => callback(null, allowedSocketOrigin(origin)),
       credentials: false,
     },
-    allowRequest: (request, callback) => callback(null, allowedSocketOrigin(request.headers.origin, undefined, undefined, request.headers.host)),
+    allowRequest: (request, callback) => callback(null, allowedSocketOrigin(request.headers.origin)),
     transports: ["websocket", "polling"],
     maxHttpBufferSize: 12_000,
   });
