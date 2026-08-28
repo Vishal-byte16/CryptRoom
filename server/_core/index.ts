@@ -5,7 +5,7 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../routers";
 import { registerRoomCleanupRoute } from "../roomCleanup";
-import { registerRoomRelay } from "../roomRelay";
+import { registerRoomRelay, allowedSocketOrigin } from "../roomRelay";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -40,10 +40,31 @@ function applySecurityHeaders(app: express.Express) {
   });
 }
 
+/**
+ * The frontend (e.g. Vercel) and this API server (e.g. Render) can run on
+ * different origins. Reflect the request's Origin header back only when it
+ * matches ALLOWED_ORIGINS (same allowlist used for the Socket.IO handshake),
+ * so cross-origin tRPC/API calls succeed without opening this up to any origin.
+ */
+function applyCors(app: express.Express) {
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && allowedSocketOrigin(origin, undefined, undefined, req.headers.host)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    }
+    if (req.method === "OPTIONS") { res.status(204).end(); return; }
+    next();
+  });
+}
+
 async function startServer() {
   const app = express();
   const server = createServer(app);
   applySecurityHeaders(app);
+  applyCors(app);
   app.use(express.json({ limit: "50kb" }));
   app.use(express.urlencoded({ limit: "50kb", extended: true }));
   app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
