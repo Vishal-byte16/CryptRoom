@@ -7,8 +7,9 @@ import App from "./App";
 import "./index.css";
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 const trpcClient = trpc.createClient({
-  links: [httpBatchLink({ url: "/api/trpc", transformer: superjson })],
+  links: [httpBatchLink({ url: `${apiBaseUrl}/api/trpc`, transformer: superjson })],
 });
 
 createRoot(document.getElementById("root")!).render(

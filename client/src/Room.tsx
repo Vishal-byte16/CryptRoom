@@ -196,9 +196,9 @@ export default function Room({ roomId }: { roomId: string }) {
 
   useEffect(() => {
     if (!guestToken || !roomSecretReady || status.isError) return;
-    const socket = io({
+    const socket = io(import.meta.env.VITE_API_BASE_URL || undefined, {
       path: "/api/realtime",
-      transports: ["websocket", "polling"],
+      transports: ["polling", "websocket"],
       auth: { roomId, guestToken },
     });
     socketRef.current = socket;
@@ -344,7 +344,7 @@ export default function Room({ roomId }: { roomId: string }) {
               setRoomError({ kind: "connection", message: "Message delivery could not be confirmed. Reconnect and retry." });
               setIsSending(false);
             }
-          }, 1_000);
+          }, 10_000);
           socket.emit("room:message", envelope, (acknowledgement: MessageAck) => {
             acknowledged = true;
             window.clearTimeout(acknowledgementTimer);
