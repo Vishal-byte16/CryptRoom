@@ -234,7 +234,10 @@ function acceptReplayProtectedMessage(access: RoomAccess, envelope: CiphertextEn
 export function registerRoomRelay(server: HttpServer) {
   const io = new Server(server, {
     path: "/api/realtime",
-    cors: { origin: false, credentials: false },
+    cors: {
+      origin: (origin, callback) => callback(null, allowedSocketOrigin(origin, undefined, undefined, undefined)),
+      credentials: false,
+    },
     allowRequest: (request, callback) => callback(null, allowedSocketOrigin(request.headers.origin, undefined, undefined, request.headers.host)),
     transports: ["websocket", "polling"],
     maxHttpBufferSize: 12_000,
