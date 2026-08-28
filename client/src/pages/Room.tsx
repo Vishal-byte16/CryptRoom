@@ -196,7 +196,7 @@ export default function Room({ roomId }: { roomId: string }) {
 
   useEffect(() => {
     if (!guestToken || !roomSecretReady || status.isError) return;
-    const socket = io({
+    const socket = io(import.meta.env.VITE_API_BASE_URL || undefined, {
       path: "/api/realtime",
       transports: ["polling", "websocket"],
       auth: { roomId, guestToken },
