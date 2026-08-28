@@ -344,7 +344,7 @@ export default function Room({ roomId }: { roomId: string }) {
               setRoomError({ kind: "connection", message: "Message delivery could not be confirmed. Reconnect and retry." });
               setIsSending(false);
             }
-          }, 1_000);
+          }, 10_000);
           socket.emit("room:message", envelope, (acknowledgement: MessageAck) => {
             acknowledged = true;
             window.clearTimeout(acknowledgementTimer);
@@ -432,6 +432,9 @@ export default function Room({ roomId }: { roomId: string }) {
               <Button variant="ghost" size="icon" onClick={() => setDarkMode(value => !value)} className="rounded-full text-[#526a75] hover:bg-[#e8f1f0]" aria-label="Toggle dark mode">
                 {darkMode ? <Sun size={17} /> : <Moon size={17} />}
               </Button>
+              <Button variant="ghost" size="icon" onClick={copyShareLink} className="rounded-full text-[#3f5664] hover:bg-[#e8f1f0] sm:hidden" aria-label={isCopied ? "Secure link copied" : "Copy secure link"}>
+                {isCopied ? <Check size={16} className="text-[#1b7a7a]" /> : <Copy size={16} />}
+              </Button>
               <Button variant="ghost" size="sm" onClick={copyShareLink} className="hidden rounded-full text-[#3f5664] hover:bg-[#e8f1f0] sm:flex">
                 {isCopied ? <Check size={16} className="text-[#1b7a7a]" /> : <Copy size={16} />} {isCopied ? "Copied" : "Share link"}
               </Button>
@@ -448,6 +451,8 @@ export default function Room({ roomId }: { roomId: string }) {
                 <span>{socketState === "connected" ? (partnerOnline ? "You and one guest are present" : "You are securely connected") : socketState === "connecting" ? "Securing connection…" : "Connection interrupted — retrying…"}</span>
                 <span className="mx-1 hidden text-[#cad5d7] sm:inline">·</span>
                 <span className="hidden items-center gap-1 sm:flex"><UsersRound size={13} /> {status.data.activeParticipantCount}/2 room places used</span>
+                <span className="mx-1 text-[#cad5d7]">·</span>
+                <span className="flex items-center gap-1"><Clock3 size={13} /> Expires in <Countdown expiresAt={status.data.expiresAt} /></span>
               </div>
               {status.data.isHost && <Button variant="ghost" size="sm" onClick={() => void handleBurn()} disabled={isBurning} className="h-7 rounded-full px-2 text-[#b64b37] hover:bg-[#faeae6] hover:text-[#9e3527]"><Flame size={14} /> {isBurning ? "Burning…" : "Burn room"}</Button>}
             </div>
