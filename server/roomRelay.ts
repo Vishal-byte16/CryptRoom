@@ -238,7 +238,7 @@ export function registerRoomRelay(server: HttpServer) {
     },
     allowRequest: (request, callback) => callback(null, allowedSocketOrigin(request.headers.origin)),
     transports: ["websocket", "polling"],
-    maxHttpBufferSize: 12_000,
+    maxHttpBufferSize: 320_000,
   });
   activeRelay = io;
 

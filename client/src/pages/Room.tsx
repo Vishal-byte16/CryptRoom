@@ -14,6 +14,7 @@ import {
   Eye,
   Copy,
   Flame,
+  Image as ImageIcon,
   KeyRound,
   Loader2,
   LockKeyhole,
@@ -34,6 +35,8 @@ type Message = {
   body: string;
   sentAt: number;
   direction: "sent" | "received";
+  kind?: "text" | "image";
+  imageDataUrl?: string;
 };
 
 type RoomError = { kind: "crypto" | "server" | "connection" | "expired"; message: string; code?: string };
@@ -69,6 +72,34 @@ async function participantSequenceKey(roomId: string, guestToken: string) {
 
 async function clearParticipantSequence(roomId: string, guestToken: string) {
   localStorage.removeItem(await participantSequenceKey(roomId, guestToken));
+}
+
+type ImagePayload = { kind: "image"; mime: string; data: string };
+
+function isImagePayload(value: unknown): value is ImagePayload {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  return candidate.kind === "image" && typeof candidate.mime === "string" && typeof candidate.data === "string" && candidate.data.startsWith("data:image/");
+}
+
+/** Downscales and recompresses an image client-side so its encrypted payload fits the room's message size cap. */
+async function compressImageToDataUrl(file: File, maxDimension = 1_000): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("This browser cannot process images for sending.");
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  for (const quality of [0.7, 0.55, 0.4, 0.28, 0.18]) {
+    const dataUrl = canvas.toDataURL("image/jpeg", quality);
+    // Rough estimate: encrypted base64url output runs slightly larger than the
+    // source data URL, so stay comfortably under the shared ciphertext cap.
+    if (dataUrl.length < 150_000) return dataUrl;
+  }
+  throw new Error("This image is too large to send even after compression. Try a smaller photo.");
 }
 
 async function createSequencedEnvelope<T>(roomId: string, guestToken: string, minimum: number, createEnvelope: (sequence: number) => Promise<T>, emitEnvelope: (envelope: T) => void) {
@@ -142,6 +173,7 @@ export default function Room({ roomId }: { roomId: string }) {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("cryptroom:theme") === "dark");
   const [isBurning, setIsBurning] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
   const sequenceRef = useRef(0);
   const receivedMessageIdsRef = useRef(new Set<string>());
@@ -228,7 +260,11 @@ export default function Room({ roomId }: { roomId: string }) {
         receivedMessageIdsRef.current.add(envelope.messageId);
         if (receivedMessageIdsRef.current.size > 256) receivedMessageIdsRef.current.delete(receivedMessageIdsRef.current.values().next().value!);
         const body = await decryptRoomMessage(roomId, secret, envelope);
-        setMessages(current => current.some(message => message.id === envelope.messageId) ? current : [...current, { id: envelope.messageId, body, sentAt: envelope.sentAt, direction: own ? "sent" : "received" }]);
+        const parsedPayload = (() => { try { return JSON.parse(body); } catch { return null; } })();
+        const newMessage: Message = isImagePayload(parsedPayload)
+          ? { id: envelope.messageId, body: "", sentAt: envelope.sentAt, direction: own ? "sent" : "received", kind: "image", imageDataUrl: parsedPayload.data }
+          : { id: envelope.messageId, body, sentAt: envelope.sentAt, direction: own ? "sent" : "received", kind: "text" };
+        setMessages(current => current.some(message => message.id === envelope.messageId) ? current : [...current, newMessage]);
         if (!own && document.hidden && alertsEnabled) {
           try {
             if ("Notification" in window && Notification.permission === "granted") new Notification("CryptRoom", { body: "A new private message arrived.", tag: `cryptroom-${roomId}` });
@@ -402,6 +438,45 @@ export default function Room({ roomId }: { roomId: string }) {
     }
   };
 
+  const sendImage = async (file: File) => {
+    if (!socketRef.current || socketState !== "connected") return;
+    setIsSending(true);
+    setRoomError(null);
+    try {
+      const dataUrl = await compressImageToDataUrl(file);
+      const payload: ImagePayload = { kind: "image", mime: file.type || "image/jpeg", data: dataUrl };
+      const plaintext = JSON.stringify(payload);
+      const prepared = await createSequencedEnvelope(
+        roomId,
+        guestToken,
+        sequenceRef.current,
+        sequence => encryptRoomMessage(roomId, secret, plaintext, sequence),
+        envelope => {
+          const socket = socketRef.current;
+          if (!socket || socketState !== "connected") throw new Error("Protected connection is unavailable.");
+          const acknowledgementTimer = window.setTimeout(() => {
+            setRoomError({ kind: "connection", message: "Image delivery could not be confirmed. Reconnect and retry." });
+            setIsSending(false);
+          }, 15_000);
+          socket.emit("room:message", envelope, (acknowledgement: MessageAck) => {
+            window.clearTimeout(acknowledgementTimer);
+            if (!acknowledgement?.ok) {
+              setRoomError({ kind: acknowledgement?.code === "ROOM_EXPIRED" ? "expired" : "server", code: acknowledgement?.code, message: acknowledgement?.message ?? "The image was not accepted by this room." });
+              setIsSending(false);
+              return;
+            }
+            setMessages(current => current.some(message => message.id === envelope.messageId) ? current : [...current, { id: envelope.messageId, body: "", sentAt: envelope.sentAt, direction: "sent", kind: "image", imageDataUrl: dataUrl }]);
+            setIsSending(false);
+          });
+        }
+      );
+      sequenceRef.current = prepared.sequence;
+    } catch (error) {
+      setRoomError({ kind: "crypto", message: error instanceof Error && error.message.includes("too large") ? error.message : "This image could not be sent. Try a different photo." });
+      setIsSending(false);
+    }
+  };
+
   if (!roomSecretReady) {
     return <RoomNotice icon={KeyRound} title="Secure link required" description="This room uses a private encryption secret that stays in its secure link. Ask the room creator to send the complete link, not only the Room ID." action={<Button onClick={() => setLocation("/")} className="rounded-full bg-[#1b7a7a] px-5 hover:bg-[#126667]"><ArrowLeft size={16} /> Back to CryptRoom</Button>} />;
   }
@@ -506,9 +581,13 @@ export default function Room({ roomId }: { roomId: string }) {
                 <div className="space-y-5">
                   {messages.map(message => (
                     <article key={message.id} className={cn("message-row", message.direction === "sent" ? "justify-end" : "justify-start")}>
-                      <div className={cn("max-w-[85%] rounded-2xl px-4 py-3 shadow-sm sm:max-w-[70%]", message.direction === "sent" ? "rounded-br-md bg-[#1b7a7a] text-white" : "rounded-bl-md border border-[#e0eae9] bg-white text-[#2a3e49]")}>
-                        <p className="break-words text-[15px] leading-6">{message.body}</p>
-                        <p className={cn("mt-1.5 text-right text-[10px]", message.direction === "sent" ? "text-[#cceee9]" : "text-[#91a0a6]")}>{messageFormatter.format(message.sentAt)}</p>
+                      <div className={cn("max-w-[85%] rounded-2xl shadow-sm sm:max-w-[70%]", message.kind === "image" ? "overflow-hidden p-1.5" : "px-4 py-3", message.direction === "sent" ? "rounded-br-md bg-[#1b7a7a] text-white" : "rounded-bl-md border border-[#e0eae9] bg-white text-[#2a3e49]")}>
+                        {message.kind === "image" && message.imageDataUrl ? (
+                          <img src={message.imageDataUrl} alt="Shared photo" className="max-h-80 w-full rounded-xl object-cover" />
+                        ) : (
+                          <p className="break-words text-[15px] leading-6">{message.body}</p>
+                        )}
+                        <p className={cn("mt-1.5 text-right text-[10px]", message.kind === "image" && "px-2 pb-1", message.direction === "sent" ? "text-[#cceee9]" : "text-[#91a0a6]")}>{messageFormatter.format(message.sentAt)}</p>
                       </div>
                     </article>
                   ))}
@@ -521,6 +600,10 @@ export default function Room({ roomId }: { roomId: string }) {
 
           <footer className="border-t border-[#e0e9e8] bg-white/80 px-4 py-4 sm:px-7 sm:py-5">
             <form onSubmit={sendMessage} className="mx-auto flex max-w-3xl items-end gap-3">
+              <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void sendImage(file); }} />
+              <Button type="button" variant="outline" onClick={() => imageInputRef.current?.click()} disabled={socketState !== "connected" || isSending} className="h-12 shrink-0 rounded-xl border-[#d6e3e2] bg-[#fcfefd] px-3 text-[#3f5964] hover:bg-[#eef8f5]" aria-label="Send a photo">
+                <ImageIcon size={18} />
+              </Button>
               <div className="relative flex-1">
                 <Input value={draft} onChange={event => updateDraft(event.target.value)} placeholder={socketState === "connected" ? "Write privately…" : "Reconnecting to private room…"} disabled={socketState !== "connected"} maxLength={1_200} className="h-12 rounded-xl border-[#d6e3e2] bg-[#fcfefd] pr-14 text-[15px] shadow-none placeholder:text-[#9caab0] focus-visible:border-[#1b7a7a]" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#a1afb2]">{draft.length}/1200</span>

@@ -3,7 +3,7 @@ const decoder = new TextDecoder();
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 const MESSAGE_ID_LENGTH = 22;
 const AES_GCM_IV_BASE64URL_LENGTH = 16;
-const MAX_CIPHERTEXT_LENGTH = 8_500;
+const MAX_CIPHERTEXT_LENGTH = 220_000;
 const MAX_CLOCK_SKEW_MS = 5 * 60_000;
 const roomKeyCache = new Map<string, Promise<CryptoKey>>();
 
