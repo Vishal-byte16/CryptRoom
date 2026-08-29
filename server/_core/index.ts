@@ -2,10 +2,12 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import { sql } from "drizzle-orm";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../routers";
 import { registerRoomCleanupRoute } from "../roomCleanup";
 import { registerRoomRelay, allowedSocketOrigin } from "../roomRelay";
+import { getDb } from "../db";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -67,7 +69,20 @@ async function startServer() {
   applyCors(app);
   app.use(express.json({ limit: "50kb" }));
   app.use(express.urlencoded({ limit: "50kb", extended: true }));
-  app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
+  app.get("/health", async (_req, res) => {
+    // A pinger (e.g. UptimeRobot) hitting this on a schedule keeps both this
+    // server and the database awake on free tiers that auto-sleep on
+    // inactivity. The query itself is trivial and touches no application data.
+    try {
+      const db = await getDb();
+      if (db) await db.execute(sql`SELECT 1`);
+      res.status(200).json({ status: "ok", db: db ? "reachable" : "unconfigured" });
+    } catch {
+      // Report degraded rather than failing the health check outright — a
+      // transient DB hiccup shouldn't make Render think the whole service is down.
+      res.status(200).json({ status: "degraded", db: "unreachable" });
+    }
+  });
   registerRoomCleanupRoute(app);
   registerRoomRelay(server);
   app.use("/api/trpc", createExpressMiddleware({ router: appRouter, createContext }));
