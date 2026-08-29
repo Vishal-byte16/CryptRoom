@@ -445,14 +445,13 @@ export default function Room({ roomId }: { roomId: string }) {
           </header>
 
           <div className="border-b border-[#e5eceb] bg-white/60 px-4 py-3 sm:px-7">
-            <div className="flex items-center justify-between gap-3 text-xs text-[#617780]">
-              <div className="flex items-center gap-2">
-                <span className={cn("inline-block h-2 w-2 rounded-full", socketState === "connected" ? "bg-[#2da786]" : socketState === "connecting" ? "bg-[#d69e3d]" : "bg-[#ce654d]")} />
-                <span>{socketState === "connected" ? (partnerOnline ? "You and one guest are present" : "You are securely connected") : socketState === "connecting" ? "Securing connection…" : "Connection interrupted — retrying…"}</span>
-                <span className="mx-1 hidden text-[#cad5d7] sm:inline">·</span>
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 text-xs text-[#617780]">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                <span className="flex items-center gap-2"><span className={cn("inline-block h-2 w-2 shrink-0 rounded-full", socketState === "connected" ? "bg-[#2da786]" : socketState === "connecting" ? "bg-[#d69e3d]" : "bg-[#ce654d]")} />{socketState === "connected" ? (partnerOnline ? "You and one guest are present" : "You are securely connected") : socketState === "connecting" ? "Securing connection…" : "Connection interrupted — retrying…"}</span>
+                <span className="hidden text-[#cad5d7] sm:inline">·</span>
                 <span className="hidden items-center gap-1 sm:flex"><UsersRound size={13} /> {status.data.activeParticipantCount}/2 room places used</span>
-                <span className="mx-1 text-[#cad5d7]">·</span>
-                <span className="flex items-center gap-1"><Clock3 size={13} /> Expires in <Countdown expiresAt={status.data.expiresAt} /></span>
+                <span className="text-[#cad5d7]">·</span>
+                <span className="flex items-center gap-1 whitespace-nowrap"><Clock3 size={13} /> Expires in <Countdown expiresAt={status.data.expiresAt} /></span>
               </div>
               {status.data.isHost && <Button variant="ghost" size="sm" onClick={() => void handleBurn()} disabled={isBurning} className="h-7 rounded-full px-2 text-[#b64b37] hover:bg-[#faeae6] hover:text-[#9e3527]"><Flame size={14} /> {isBurning ? "Burning…" : "Burn room"}</Button>}
             </div>
@@ -468,6 +467,12 @@ export default function Room({ roomId }: { roomId: string }) {
                   <h3 className="mt-5 font-serif text-2xl tracking-[-0.035em] text-[#263945]">Your private space is ready.</h3>
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#71838a]">Share the secure link. Once your guest arrives, anything said here exists only while this room is open.</p>
                   <Button variant="outline" onClick={copyShareLink} className="mt-5 rounded-full border-[#cfe0df] bg-white px-4 text-[#2c5f62] hover:bg-[#f2f9f7] sm:hidden"><Copy size={15} /> {isCopied ? "Secure link copied" : "Copy secure link"}</Button>
+                  {shareQr && (
+                    <div className="mx-auto mt-5 w-fit rounded-2xl border border-[#dbe6e5] bg-white p-3 sm:hidden">
+                      <img src={shareQr} alt="QR code for this room's secure link" className="h-36 w-36" />
+                      <p className="mt-2 flex items-center justify-center gap-1 text-[11px] text-[#71838a]"><QrCode size={12} /> Scan to join</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-5">
