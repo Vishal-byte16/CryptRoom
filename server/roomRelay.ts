@@ -14,12 +14,14 @@ type RoomMessageEvent = { envelope: CiphertextEnvelope; own: boolean };
 type ClientToServerEvents = {
   "room:message": (payload: CiphertextEnvelope, acknowledge?: (result: MessageAck) => void) => void;
   "room:typing": (payload: { isTyping: boolean }) => void;
+  "room:activity": (payload: { away: boolean }) => void;
 };
 
 type ServerToClientEvents = {
     "room:message": (payload: RoomMessageEvent) => void;
     "room:presence": (payload: { onlineParticipantCount: number }) => void;
     "room:typing": (payload: { isTyping: boolean }) => void;
+    "room:activity": (payload: { away: boolean }) => void;
     "room:error": (payload: Exclude<MessageAck, { ok: true }>) => void;
 };
 
@@ -305,6 +307,13 @@ export function registerRoomRelay(server: HttpServer) {
       if (burnedRoomIds.has(roomId) || Date.now() >= expiresAt) return;
       if (!typingLimiter.consume(`${roomDbId}:${participantId}`)) return;
       socket.to(roomChannel(roomId)).emit("room:typing", { isTyping: payload.isTyping });
+    });
+
+    socket.on("room:activity", async payload => {
+      if (!payload || typeof payload.away !== "boolean") return;
+      if (burnedRoomIds.has(roomId) || Date.now() >= expiresAt) return;
+      if (!typingLimiter.consume(`${roomDbId}:${participantId}`)) return;
+      socket.to(roomChannel(roomId)).emit("room:activity", { away: payload.away });
     });
 
     socket.on("disconnect", () => {

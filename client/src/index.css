@@ -131,6 +131,9 @@
   /* Danger text (errors, warnings) -> lighter red, readable on dark backgrounds */
   .dark .text-\[\#a44936\], .dark .text-\[\#b15640\], .dark .text-\[\#934633\], .dark .text-\[\#9e3527\], .dark .text-\[\#b64b37\] { color: #f0a08c !important; }
 
+  /* Away/activity notice -> lighter amber, readable on dark backgrounds */
+  .dark .text-\[\#9a8452\] { color: #e0c17a !important; }
+
   /* Borders -> consistent dark divider color; danger borders get a muted red */
   .dark .border-\[\#c9dedc\], .dark .border-\[\#d5e5e5\], .dark .border-\[\#d6e4e4\], .dark .border-\[\#d6e3e2\], .dark .border-\[\#d8e4e6\],
   .dark .border-\[\#dae6e7\], .dark .border-\[\#dbe6e5\], .dark .border-\[\#e0e9e8\], .dark .border-\[\#e0eae9\], .dark .border-\[\#e5eceb\],

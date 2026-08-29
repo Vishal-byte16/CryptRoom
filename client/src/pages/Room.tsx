@@ -11,6 +11,7 @@ import {
   Check,
   CircleAlert,
   Clock3,
+  Eye,
   Copy,
   Flame,
   KeyRound,
@@ -132,6 +133,7 @@ export default function Room({ roomId }: { roomId: string }) {
   const [socketState, setSocketState] = useState<"connecting" | "connected" | "offline" | "error">("connecting");
   const [onlineParticipantCount, setOnlineParticipantCount] = useState(0);
   const [partnerTyping, setPartnerTyping] = useState(false);
+  const [partnerAway, setPartnerAway] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [roomError, setRoomError] = useState<RoomError | null>(null);
   const [isSending, setIsSending] = useState(false);
@@ -215,6 +217,7 @@ export default function Room({ roomId }: { roomId: string }) {
       setPartnerTyping(payload.isTyping);
       if (payload.isTyping) window.setTimeout(() => setPartnerTyping(false), 3_200);
     });
+    socket.on("room:activity", payload => setPartnerAway(payload.away));
     socket.on("room:message", async ({ envelope, own }: RoomMessageEvent) => {
       try {
         if (!isValidEncryptedMessageEnvelope(envelope)) {
@@ -255,6 +258,31 @@ export default function Room({ roomId }: { roomId: string }) {
       socketRef.current = null;
     };
   }, [alertsEnabled, guestToken, roomId, roomSecretReady, secret, status.isError, utils.room.status]);
+
+  // Tell the other participant when this tab loses focus or goes to the background.
+  // This is a transparency signal, not a security control — it cannot detect
+  // screenshots or screen recording, only that the app is no longer in view.
+  useEffect(() => {
+    if (socketState !== "connected") return;
+    let timer: number | null = null;
+    const setAway = (away: boolean) => {
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => socketRef.current?.emit("room:activity", { away }), away ? 400 : 0);
+    };
+    const onVisibilityChange = () => setAway(document.hidden);
+    const onBlur = () => setAway(true);
+    const onFocus = () => setAway(false);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+      socketRef.current?.emit("room:activity", { away: false });
+    };
+  }, [socketState]);
 
   const shareLink = useMemo(() => `${window.location.origin}/room/${roomId}#${secret}`, [roomId, secret]);
   const partnerOnline = onlineParticipantCount >= 2;
@@ -486,6 +514,7 @@ export default function Room({ roomId }: { roomId: string }) {
                   ))}
                 </div>
               )}
+              {partnerAway && !partnerTyping && <div className="mt-5 flex items-center gap-2 text-xs text-[#9a8452]"><Eye size={13} /> Your guest's screen may not be in view right now</div>}
               {partnerTyping && <div className="mt-5 flex items-center gap-2 text-xs text-[#70848a]"><span className="typing-dots"><i /><i /><i /></span> Your guest is writing</div>}
             </div>
           </ScrollArea>
